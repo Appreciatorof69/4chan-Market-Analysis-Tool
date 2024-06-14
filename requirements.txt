@@ -1,6 +1,4 @@
-tk
+tkinter
 requests
-matplotlib
-textblob
 aiohttp
 feedparser
