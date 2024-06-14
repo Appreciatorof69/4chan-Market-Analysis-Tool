@@ -113,8 +113,6 @@ def prompt_chatgpt_evaluation(keyword, posts, display_option):
         f"The current price is {current_price}. "
         f"Here are the latest news headlines:\n{news_summary}\n"
         f"Here are the comments:\n{comments_summary}"
-        f"    "
-        f"Based on everything. Buy, Wait, Sell?"
     )
 
     prompt_entry.delete('1.0', tk.END)
@@ -150,6 +148,12 @@ def perform_analysis_async():
     # Start the analysis in a separate thread to avoid freezing the GUI
     thread = Thread(target=analyze)
     thread.start()
+
+# Function to copy the prompt text to the clipboard
+def copy_to_clipboard():
+    root.clipboard_clear()
+    root.clipboard_append(prompt_entry.get("1.0", tk.END))
+    messagebox.showinfo("Clipboard", "Text copied to clipboard!")
 
 # GUI setup
 root = tk.Tk()
@@ -218,6 +222,10 @@ analyze_button.grid(row=5, column=0, columnspan=2, pady=20)
 ttk.Label(main_frame, text="Generated Prompt for ChatGPT:").grid(row=6, column=0, columnspan=2, pady=5)
 prompt_entry = tk.Text(main_frame, height=10, width=80)
 prompt_entry.grid(row=7, column=0, columnspan=2, pady=5)
+
+# Copy to clipboard button
+copy_button = ttk.Button(main_frame, text="Copy to Clipboard", command=copy_to_clipboard)
+copy_button.grid(row=8, column=0, columnspan=2, pady=5)
 
 # Run the application
 root.mainloop()
