@@ -1,18 +1,12 @@
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import ttk
 import requests
-import matplotlib.pyplot as plt
-from textblob import TextBlob
 from threading import Thread
 import asyncio
 import aiohttp
 import random
 import feedparser
-
-# Function to analyze sentiment
-def analyze_sentiment(text):
-    analysis = TextBlob(text)
-    return analysis.sentiment.polarity
 
 # Function to get posts from a specific 4chan board using asynchronous requests
 async def fetch_thread_data(session, url):
@@ -37,12 +31,10 @@ async def get_posts_from_board_async(board, keyword):
                 if 'com' in post:
                     comment = post['com']
                     if keyword.lower() in comment.lower():
-                        sentiment = analyze_sentiment(comment)
                         poster_id = post.get('id', 'N/A')  # Get poster ID if available
                         filtered_posts.append({
                             'date': post['now'],
                             'comment': comment,
-                            'sentiment': sentiment,
                             'poster_id': poster_id
                         })
 
@@ -50,13 +42,25 @@ async def get_posts_from_board_async(board, keyword):
 
 # Function to fetch the current price of the keyword
 def fetch_current_price(keyword):
-    api_keyword = 'bitcoin' if keyword.lower() == 'btc' else keyword.lower()
-    url = f'https://api.coingecko.com/api/v3/simple/price?ids={api_keyword}&vs_currencies=usd'
+    url = 'https://api.coingecko.com/api/v3/coins/list'
     try:
         response = requests.get(url)
         response.raise_for_status()  # Raise an error for bad status codes
-        data = response.json()
-        return data.get(api_keyword, {}).get('usd', 'N/A')
+        coins = response.json()
+        # Find the coin ID for the given keyword
+        coin_id = None
+        for coin in coins:
+            if coin['symbol'].lower() == keyword.lower() or coin['id'].lower() == keyword.lower():
+                coin_id = coin['id']
+                break
+        if not coin_id:
+            return 'N/A'
+        
+        price_url = f'https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd'
+        price_response = requests.get(price_url)
+        price_response.raise_for_status()
+        price_data = price_response.json()
+        return price_data.get(coin_id, {}).get('usd', 'N/A')
     except requests.exceptions.RequestException as e:
         print(f"Error fetching price: {e}")
         return 'N/A'
@@ -79,29 +83,11 @@ def log_keywords_and_sentiment(board, keyword, posts, display_option):
     if not posts:
         messagebox.showerror("Error", "No posts found or failed to retrieve data.")
         return
-    
-    sentiments = [post['sentiment'] for post in posts]
-    dates = [post['date'] for post in posts]
-    plot_sentiment_trend(keyword, dates, sentiments)
-    prompt_chatgpt_evaluation(keyword, posts, display_option)
 
-# Function to plot sentiment trend
-def plot_sentiment_trend(keyword, dates, sentiment_values):
-    plt.figure(figsize=(10, 5))
-    plt.plot(dates, sentiment_values, marker='o', linestyle='-', color='b')
-    plt.title(f'Sentiment Trend for Keyword: {keyword}')
-    plt.xlabel('Date')
-    plt.ylabel('Sentiment')
-    plt.grid(True)
-    plt.show()
+    prompt_chatgpt_evaluation(keyword, posts, display_option)
 
 # Function to prompt ChatGPT evaluation
 def prompt_chatgpt_evaluation(keyword, posts, display_option):
-    sentiments = [post['sentiment'] for post in posts]
-    positive = sum(1 for s in sentiments if s > 0)
-    negative = sum(1 for s in sentiments if s < 0)
-    neutral = len(sentiments) - positive - negative
-
     current_price = fetch_current_price(keyword)
     latest_news = fetch_latest_news(keyword)
     news_summary = '\n'.join(latest_news)
@@ -118,19 +104,15 @@ def prompt_chatgpt_evaluation(keyword, posts, display_option):
         f"Keyword: {keyword}\n"
         f"Current Price: {current_price}\n"
         f"Latest News:\n{news_summary}\n"
-        f"Positive Mentions: {positive}\n"
-        f"Negative Mentions: {negative}\n"
-        f"Neutral Mentions: {neutral}\n"
         f"Comments:\n{comments_summary}"
     )
 
     prompt_text = (
         f"Evaluate the sentiment for the keyword '{keyword}'. "
-        f"There are {positive} positive mentions, {negative} negative mentions, "
-        f"and {neutral} neutral mentions. "
+        f"How many are positive, negative, neutral, off-topic? "
         f"The current price is {current_price}. "
         f"Here are the latest news headlines:\n{news_summary}\n"
-        f"Here are the comments:\n{        comments_summary}"
+        f"Here are the comments:\n{comments_summary}"
     )
 
     prompt_entry.delete('1.0', tk.END)
@@ -171,6 +153,16 @@ def perform_analysis_async():
 root = tk.Tk()
 root.title("4chan Market Analysis Tool")
 
+# Main frame
+main_frame = ttk.Frame(root, padding="10")
+main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+# Grid configuration
+root.columnconfigure(0, weight=1)
+root.rowconfigure(0, weight=1)
+main_frame.columnconfigure(0, weight=1)
+main_frame.columnconfigure(1, weight=3)
+
 # Tooltips
 def create_tooltip(widget, text):
     tooltip = tk.Toplevel(widget)
@@ -193,38 +185,37 @@ def create_tooltip(widget, text):
     widget.bind("<Leave>", leave)
 
 # Board entry
-tk.Label(root, text="Enter board:").pack(pady=5)
-board_entry = tk.Entry(root)
-board_entry.pack(pady=5)
+ttk.Label(main_frame, text="Enter board:").grid(row=0, column=0, sticky=tk.W, pady=5)
+board_entry = ttk.Entry(main_frame)
+board_entry.grid(row=0, column=1, sticky=(tk.W, tk.E), pady=5)
 create_tooltip(board_entry, "Enter the 4chan board name, e.g., 'biz' for Business & Finance")
 
 # Keyword entry
-tk.Label(root, text="Enter keyword:").pack(pady=5)
-keyword_entry = tk.Entry(root)
-keyword_entry.pack(pady=5)
+ttk.Label(main_frame, text="Enter keyword:").grid(row=1, column=0, sticky=tk.W, pady=5)
+keyword_entry = ttk.Entry(main_frame)
+keyword_entry.grid(row=1, column=1, sticky=(tk.W, tk.E), pady=5)
 create_tooltip(keyword_entry, "Enter the keyword to search for, e.g., 'btc' for Bitcoin")
 
 # Display option
-tk.Label(root, text="Display option:").pack(pady=5)
+ttk.Label(main_frame, text="Display option:").grid(row=2, column=0, sticky=tk.W, pady=5)
 display_option_var = tk.StringVar(value="All Comments")
-display_option_all = tk.Radiobutton(root, text="All Comments (Analyze all comments containing the keyword)", variable=display_option_var, value="All Comments")
-display_option_random = tk.Radiobutton(root, text="Random Comments (Analyze a random sample of comments containing the keyword)", variable=display_option_var, value="Random Comments")
-display_option_all.pack(pady=2)
-display_option_random.pack(pady=2)
+display_option_all = ttk.Radiobutton(main_frame, text="All Comments (Analyze all comments containing the keyword)", variable=display_option_var, value="All Comments")
+display_option_random = ttk.Radiobutton(main_frame, text="Random Comments (Analyze a random sample of comments containing the keyword)", variable=display_option_var, value="Random Comments")
+display_option_all.grid(row=2, column=1, sticky=tk.W, pady=2)
+display_option_random.grid(row=3, column=1, sticky=tk.W, pady=2)
 
 # Loading label
-loading_label = tk.Label(root, text="", fg="red")
-loading_label.pack(pady=5)
+loading_label = ttk.Label(main_frame, text="", foreground="red")
+loading_label.grid(row=4, column=0, columnspan=2, pady=5)
 
 # Analysis button
-analyze_button = tk.Button(root, text="Perform Analysis", command=perform_analysis_async)
-analyze_button.pack(pady=20)
+analyze_button = ttk.Button(main_frame, text="Perform Analysis", command=perform_analysis_async)
+analyze_button.grid(row=5, column=0, columnspan=2, pady=20)
 
 # Prompt entry
-tk.Label(root, text="Generated Prompt for ChatGPT:").pack(pady=5)
-prompt_entry = tk.Text(root, height=10, width=80)
-prompt_entry.pack(pady=5)
+ttk.Label(main_frame, text="Generated Prompt for ChatGPT:").grid(row=6, column=0, columnspan=2, pady=5)
+prompt_entry = tk.Text(main_frame, height=10, width=80)
+prompt_entry.grid(row=7, column=0, columnspan=2, pady=5)
 
 # Run the application
 root.mainloop()
-
