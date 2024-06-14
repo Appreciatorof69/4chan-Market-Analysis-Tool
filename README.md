@@ -12,7 +12,7 @@ Features
 
 Known Issues
 
-    There is a known bug where the tool sometimes confuses keywords (e.g., using "BTC" instead of "bitcoin" or "solana" instead of "SOL"). We're actively working on fixing this.
+    There is a known bug where the tool sometimes confuses keywords (e.g., using "BTC" instead of "bitcoin" or "solana" instead of "SOL"). I don't know why.
 
 ## Requirements
 
