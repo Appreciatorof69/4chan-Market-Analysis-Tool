@@ -113,6 +113,8 @@ def prompt_chatgpt_evaluation(keyword, posts, display_option):
         f"The current price is {current_price}. "
         f"Here are the latest news headlines:\n{news_summary}\n"
         f"Here are the comments:\n{comments_summary}"
+        f"    "
+        f"Based on everything. Buy, Wait, Sell?"
     )
 
     prompt_entry.delete('1.0', tk.END)
