@@ -1,0 +1,6 @@
+tk
+requests
+matplotlib
+textblob
+aiohttp
+feedparser
