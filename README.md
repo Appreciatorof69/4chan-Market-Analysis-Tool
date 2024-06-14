@@ -17,7 +17,7 @@ The 4chan Market Analysis Tool is a desktop application designed to analyze the 
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/4chan-market-analysis-tool.git
+    git clone https://github.com/Appreciatorof69/4chan-market-analysis-tool.git
     cd 4chan-market-analysis-tool
     ```
 
