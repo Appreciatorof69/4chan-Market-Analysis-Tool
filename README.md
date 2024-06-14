@@ -4,14 +4,15 @@ no financial advice
 ![grafik](https://github.com/Appreciatorof69/4chan-Market-Analysis-Tool/assets/124309106/8ef26e15-da4b-4968-ad58-93c6f6c592e8)
 
 
-This tool allows you to analyze 4chan boards for posts containing specific keywords, fetch the current price of the keyword (if it's a cryptocurrency), and retrieve the latest news about the keyword using Google News RSS feed. The results can be displayed in various formats, and a prompt is generated for ChatGPT evaluation.
+Features
 
-## Features
+    Keyword Extraction: Extracts comments containing certain keywords from specified 4chan boards.
+    Crypto Price Check: Fetches current cryptocurrency prices from various exchanges.
+    News Aggregation: Pulls relevant news articles related to the extracted keywords and cryptocurrencies.
 
-- Asynchronously fetch and filter posts from a specified 4chan board.
-- Retrieve the current price of a cryptocurrency keyword using the CoinGecko API.
-- Fetch the latest news related to the keyword using Google News RSS feed.
-- Display the filtered posts and generate a prompt for sentiment analysis using ChatGPT.
+Known Issues
+
+    There is a known bug where the tool sometimes confuses keywords (e.g., using "BTC" instead of "bitcoin" or "solana" instead of "SOL"). We're actively working on fixing this.
 
 ## Requirements
 
