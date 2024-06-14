@@ -22,7 +22,7 @@ This tool allows you to analyze 4chan boards for posts containing specific keywo
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/yourusername/4chan-market-analysis-tool.git
+   git clone https://github.com/Appreciatorof69/4chan-market-analysis-tool.git
    cd 4chan-market-analysis-tool
    ```
 
@@ -35,7 +35,7 @@ This tool allows you to analyze 4chan boards for posts containing specific keywo
 
 1. Run the application:
    ```sh
-   python main.py
+   python 4chan_market_analysis_tool.py
    ```
 
 2. Enter the 4chan board name (e.g., `biz` for Business & Finance) and the keyword (e.g., `btc` for Bitcoin) in the GUI.
