@@ -1,7 +1,8 @@
 no financial advice
 # 4chan Market Analysis Tool
 
-![grafik](https://github.com/Appreciatorof69/4chan-Market-Analysis-Tool/assets/124309106/97c1a36a-2e3f-46d4-8fce-73e43ae44d53)
+![grafik](https://github.com/Appreciatorof69/4chan-Market-Analysis-Tool/assets/124309106/8ef26e15-da4b-4968-ad58-93c6f6c592e8)
+
 
 This tool allows you to analyze 4chan boards for posts containing specific keywords, fetch the current price of the keyword (if it's a cryptocurrency), and retrieve the latest news about the keyword using Google News RSS feed. The results can be displayed in various formats, and a prompt is generated for ChatGPT evaluation.
 
@@ -40,7 +41,7 @@ This tool allows you to analyze 4chan boards for posts containing specific keywo
    python 4chan_market_analysis_tool.py
    ```
 
-2. Enter the 4chan board name (e.g., `biz` for Business & Finance) and the keyword (e.g., `btc` for Bitcoin) in the GUI.
+2. Enter the 4chan board name (e.g., `biz` for Business & Finance) and the keyword (e.g., `bitcoin` for Bitcoin) in the GUI.
 3. Select the display option (either "All Comments" or "Random Comments").
 4. Click on "Perform Analysis" to fetch and analyze the data.
 5. The generated prompt for ChatGPT will be displayed in the text box at the bottom of the GUI.
