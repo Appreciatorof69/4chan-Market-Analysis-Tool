@@ -17,11 +17,21 @@ Known Issues
 
 ## Requirements
 
-- Python 3.7+
-- `tkinter`
-- `requests`
-- `aiohttp`
-- `feedparser`
+Python 3.7+
+tkinter: GUI toolkit for Python standard library.
+messagebox: Part of tkinter for creating message boxes.
+ttk: Another part of tkinter for themed widgets.
+requests: HTTP library for making requests.
+Thread (from threading): For threading operations.
+asyncio: Asynchronous I/O, event loop, and coroutines.
+aiohttp: Asynchronous HTTP client/server framework.
+random: Python's built-in random number generator.
+pandas: Data analysis library for handling structured data.
+TextBlob: Library for processing textual data, including sentiment analysis.
+nltk: Natural Language Toolkit for various NLP tasks.
+matplotlib: Plotting library for creating visualizations.
+re: Regular expressions for pattern matching in strings.
+BeautifulSoup: Library for web scraping
 
 ## Installation
 
