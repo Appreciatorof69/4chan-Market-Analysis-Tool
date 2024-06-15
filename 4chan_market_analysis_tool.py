@@ -6,7 +6,23 @@ from threading import Thread
 import asyncio
 import aiohttp
 import random
-import feedparser
+import pandas as pd
+from textblob import TextBlob
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from nltk.corpus import sentiwordnet as swn
+from nltk import download as nltk_download
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import re
+from bs4 import BeautifulSoup
+
+# Ensure NLTK resources are downloaded
+nltk_download('vader_lexicon')
+nltk_download('sentiwordnet')
+nltk_download('wordnet')
+
+# Initialize VADER sentiment analyzer
+sid = SentimentIntensityAnalyzer()
 
 # Function to get posts from a specific 4chan board using asynchronous requests
 async def fetch_thread_data(session, url):
@@ -65,18 +81,73 @@ def fetch_current_price(keyword):
         print(f"Error fetching price: {e}")
         return 'N/A'
 
-# Function to fetch the latest news about the keyword using Google News RSS feed
-def fetch_latest_news(keyword):
-    url = f'https://news.google.com/rss/search?q={keyword}&hl=en-US&gl=US&ceid=US:en'
-    try:
-        feed = feedparser.parse(url)
-        if feed.entries:
-            return [entry.title for entry in feed.entries]
+# Function to clean the text data
+def clean_text(text):
+    text = BeautifulSoup(text, "html.parser").get_text()  # Remove HTML tags
+    text = text.lower()  # Convert to lowercase
+    return text
+
+# Function to analyze sentiments
+def analyze_sentiments(posts):
+    unique_posts = {post['poster_id']: clean_text(post['comment']) for post in posts}
+
+    sentiment_results = {
+        'Poster ID': [],
+        'Comment': [],
+        'TextBlob Sentiment': [],
+        'VADER Sentiment': [],
+        'SentiWordNet Sentiment': [],
+        'Final Sentiment': []
+    }
+
+    for poster_id, comment in unique_posts.items():
+        # TextBlob analysis
+        tb_analysis = TextBlob(comment)
+        if tb_analysis.sentiment.polarity > 0:
+            tb_sentiment = 'Positive'
+        elif tb_analysis.sentiment.polarity == 0:
+            tb_sentiment = 'Neutral'
         else:
-            return ["No relevant news found."]
-    except Exception as e:
-        print(f"Error fetching news: {e}")
-        return ["Failed to retrieve news."]
+            tb_sentiment = 'Negative'
+
+        # VADER analysis
+        vader_scores = sid.polarity_scores(comment)
+        if vader_scores['compound'] > 0.1:  # Adjusted threshold for positive sentiment
+            vader_sentiment = 'Positive'
+        elif -0.1 <= vader_scores['compound'] <= 0.1:  # Adjusted threshold for neutral sentiment
+            vader_sentiment = 'Neutral'
+        else:
+            vader_sentiment = 'Negative'
+
+        # SentiWordNet analysis
+        senti_score = 0
+        words = comment.split()
+        for word in words:
+            synsets = list(swn.senti_synsets(word))
+            if synsets:
+                senti_syn = synsets[0]
+                senti_score += senti_syn.pos_score() - senti_syn.neg_score()
+        if senti_score > 0.1:  # Adjusted threshold for positive sentiment
+            senti_sentiment = 'Positive'
+        elif -0.1 <= senti_score <= 0.1:  # Adjusted threshold for neutral sentiment
+            senti_sentiment = 'Neutral'
+        else:
+            senti_sentiment = 'Negative'
+
+        # Determine final sentiment by majority vote
+        sentiments = [tb_sentiment, vader_sentiment, senti_sentiment]
+        final_sentiment = max(set(sentiments), key=sentiments.count)
+
+        # Append results
+        sentiment_results['Poster ID'].append(poster_id)
+        sentiment_results['Comment'].append(comment)
+        sentiment_results['TextBlob Sentiment'].append(tb_sentiment)
+        sentiment_results['VADER Sentiment'].append(vader_sentiment)
+        sentiment_results['SentiWordNet Sentiment'].append(senti_sentiment)
+        sentiment_results['Final Sentiment'].append(final_sentiment)
+
+    df_results = pd.DataFrame(sentiment_results)
+    return df_results
 
 # Function to log keywords and their sentiments
 def log_keywords_and_sentiment(board, keyword, posts, display_option):
@@ -84,41 +155,52 @@ def log_keywords_and_sentiment(board, keyword, posts, display_option):
         messagebox.showerror("Error", "No posts found or failed to retrieve data.")
         return
 
-    prompt_chatgpt_evaluation(keyword, posts, display_option)
-
-# Function to prompt ChatGPT evaluation
-def prompt_chatgpt_evaluation(keyword, posts, display_option):
     current_price = fetch_current_price(keyword)
-    latest_news = fetch_latest_news(keyword)
-    news_summary = '\n'.join(latest_news)
+    df = analyze_sentiments(posts)
 
     if display_option == 'All Comments':
-        comments_summary = '\n'.join(f"[{post['poster_id']}] {post['comment']}" for post in posts)
+        comments_summary = '\n'.join(f"[{post['poster_id']}] {clean_text(post['comment'])}" for post in posts)
     elif display_option == 'Random Comments':
         random_comments = random.sample(posts, min(len(posts), 5))  # Display up to 5 random comments
-        comments_summary = '\n'.join(f"[{post['poster_id']}] {post['comment']}" for post in random_comments)
+        comments_summary = '\n'.join(f"[{post['poster_id']}] {clean_text(post['comment'])}" for post in random_comments)
     else:
         comments_summary = 'Invalid display option.'
-
-    evaluation = (
-        f"Keyword: {keyword}\n"
-        f"Current Price: {current_price}\n"
-        f"Latest News:\n{news_summary}\n"
-        f"Comments:\n{comments_summary}"
-    )
 
     prompt_text = (
         f"Evaluate the sentiment for the keyword '{keyword}'. "
         f"How many are positive, negative, neutral, off-topic? "
         f"The current price is {current_price}. "
-        f"Here are the latest news headlines:\n{news_summary}\n"
         f"Here are the comments:\n{comments_summary}"
     )
 
     prompt_entry.delete('1.0', tk.END)
     prompt_entry.insert(tk.END, prompt_text)
 
-    messagebox.showinfo("ChatGPT Evaluation", evaluation)
+    # Move the display_results function call to the main thread
+    root.after(0, display_results, df)
+
+# Function to display sentiment analysis results in table format
+def display_results(df):
+    sentiment_counts = {
+        'TextBlob': df['TextBlob Sentiment'].value_counts(),
+        'VADER': df['VADER Sentiment'].value_counts(),
+        'SentiWordNet': df['SentiWordNet Sentiment'].value_counts(),
+        'Final': df['Final Sentiment'].value_counts()
+    }
+
+    fig, axes = plt.subplots(nrows=1, ncols=4, figsize=(20, 5))
+
+    for i, (title, counts) in enumerate(sentiment_counts.items()):
+        counts.plot(kind='bar', ax=axes[i], color=['green' if x == 'Positive' else 'red' if x == 'Negative' else 'grey' for x in counts.index])
+        axes[i].set_title(f'{title} Sentiments')
+        axes[i].set_xlabel('Sentiment')
+        axes[i].set_ylabel('Count')
+
+    plt.tight_layout()
+
+    canvas = FigureCanvasTkAgg(fig, master=root)
+    canvas.draw()
+    canvas.get_tk_widget().grid(row=9, column=0, columnspan=2)
 
 # Function to perform the analysis asynchronously
 def perform_analysis_async():
