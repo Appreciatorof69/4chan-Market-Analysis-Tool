@@ -1,7 +1,8 @@
 no financial advice
 # 4chan Market Analysis Tool
 
-![grafik](https://github.com/Appreciatorof69/4chan-Market-Analysis-Tool/assets/124309106/8ef26e15-da4b-4968-ad58-93c6f6c592e8)
+![grafik](https://github.com/Appreciatorof69/4chan-Market-Analysis-Tool/assets/124309106/57d7ac01-234a-4f96-8684-e5dad64bb5b3)
+
 
 
 Features
