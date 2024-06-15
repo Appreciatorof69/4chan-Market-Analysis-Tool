@@ -1,4 +1,12 @@
 tkinter
 requests
+threading
+asyncio
 aiohttp
-feedparser
+random
+pandas
+TextBlob
+nltk
+matplotlib
+re
+beautifulsoup4
