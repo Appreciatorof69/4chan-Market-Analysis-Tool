@@ -7,9 +7,8 @@ no financial advice
 
 Features
 
-    Keyword Extraction: Extracts comments containing certain keywords from specified 4chan boards.
-    Crypto Price Check: Fetches current cryptocurrency prices from various exchanges.
-    News Aggregation: Pulls relevant news articles related to the extracted keywords and cryptocurrencies.
+- Keyword Extraction: Extracts comments containing certain keywords from specified 4chan boards.
+- Crypto Price Check: Fetches current cryptocurrency prices from various exchanges.
 
 Known Issues
 
